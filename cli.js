@@ -12,7 +12,7 @@ const cli = meow(
     $ npm-pack [package-name] 
   
   Options 
-    --github, -g  Go to Github page
+    --github, -g  Open Github page
     --yarn,   -y  Open yarn page
 
   Examples
@@ -75,8 +75,6 @@ async function openGithubPage(name) {
 
 const openPage = cli.flags.github ? openGithubPage : openPackagePage;
 
-console.log(cli);
-
 if (cli.input.length > 0) {
   await pMap(
     cli.input,
@@ -87,6 +85,5 @@ if (cli.input.length > 0) {
   );
 } else {
   const packageData = await readPackageUp();
-  console.log(packageData);
   openPage(packageData.packageJson.name);
 }
