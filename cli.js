@@ -9,15 +9,17 @@ import pMap from "p-map";
 const cli = meow(
   `
   Usage
-    $ npm-pack [package-name] 
-  
-  Options 
-    --github, -g  Open Github page
-    --yarn,   -y  Open yarn page
+    $ npm-pack [package-name]
+
+  Options
+    --github,   -g  Open Github page
+    --yarn,     -y  Open yarn page
+    --specific, -s  Open a specific github page
 
   Examples
     $ npm-pack express
     $ npm-pack express -g
+    $ npm-pack nodejs/node -s
 `,
   {
     importMeta: import.meta,
@@ -29,6 +31,10 @@ const cli = meow(
       yarn: {
         type: "boolean",
         shortFlag: "y",
+      },
+      specific: {
+        type: "boolean",
+        shortFlag: "s",
       },
     },
   }
@@ -76,13 +82,23 @@ async function openGithubPage(name) {
 const openPage = cli.flags.github ? openGithubPage : openPackagePage;
 
 if (cli.input.length > 0) {
-  await pMap(
-    cli.input,
-    (name) => {
-      return openPage(name);
-    },
-    { concurrency: 5 }
-  );
+  if (cli.flags.specific) {
+    await pMap(
+      cli.input.map((i) => i.split("/")),
+      ([author, name]) => {
+        return open(`https://github.com/${author}/${name}`);
+      },
+      { concurrency: 5 }
+    );
+  } else {
+    await pMap(
+      cli.input,
+      (name) => {
+        return openPage(name);
+      },
+      { concurrency: 5 }
+    );
+  }
 } else {
   const packageData = await readPackageUp();
   openPage(packageData.packageJson.name);
